@@ -12,16 +12,25 @@ connection = psycopg2.connect(user=os.environ.get('DB_USER', "postgres"),
                               database=os.environ.get('DB_NAME', 'store'))
 
 cursor = connection.cursor()
-try:
-    cursor.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"')
-    cursor.execute("CREATE TABLE Category (id uuid DEFAULT uuid_generate_v4 (), imageUrl VARCHAR(255), name VARCHAR("
-                   "255), PRIMARY KEY (id) )")
 
-    cursor.execute("CREATE TABLE Product (id uuid DEFAULT uuid_generate_v4 (), imageUrl VARCHAR(255), name VARCHAR(255), "
-                   "description TEXT, price DECIMAL (11, 3), categoryId uuid, "
-                   "FOREIGN KEY (categoryId) REFERENCES Category (id), PRIMARY KEY (id)"
-                   ")")
-except DatabaseError:
-    pass
+cursor.execute("DROP TABLE IF EXISTS ProductImage")
+cursor.execute("DROP TABLE IF EXISTS Product")
+cursor.execute("DROP TABLE IF EXISTS Category")
+
+cursor.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"')
+cursor.execute("CREATE TABLE Category (id uuid DEFAULT uuid_generate_v4 (), imageUrl VARCHAR(255), name VARCHAR("
+               "255), PRIMARY KEY (id) )")
+
+cursor.execute("CREATE TABLE Product (id uuid DEFAULT uuid_generate_v4 (), "
+               "imageUrl VARCHAR(255), name VARCHAR(255), "
+               "description TEXT, price DECIMAL (11, 3), categoryId uuid, "
+               "FOREIGN KEY (categoryId) REFERENCES Category (id), PRIMARY KEY (id)"
+               ")")
+
+cursor.execute("""
+CREATE TABLE ProductImage (id uuid DEFAULT uuid_generate_v4 (), 
+imageUrl VARCHAR(255), productId uuid,
+FOREIGN KEY (productId) REFERENCES Product (id), PRIMARY KEY (id))
+""")
 
 connection.commit()
